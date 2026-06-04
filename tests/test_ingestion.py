@@ -67,3 +67,19 @@ def test_failed_fetch_marks_run_failed():
     assert res.status == "failed"
     assert repo.runs[0]["status"] == "failed"
     assert "503" in repo.runs[0]["error_detail"]
+
+
+def test_unexpected_db_error_marks_run_failed(sample_rows):
+    # Не-WbApiError (например, сбой БД на upsert) тоже должен пометить прогон
+    # failed, а не оставить его навсегда в 'running'.
+    class _BoomRepo(InMemoryRepository):
+        def upsert_raw_transactions(self, seller_id, records):
+            raise RuntimeError("db down")
+
+    seller = Seller(id=uuid.uuid4(), name="MOCK", wb_token_enc=b"", token_scopes=["read"])
+    repo = _BoomRepo(sellers=[seller])
+    worker = IngestionWorker(repo, MockReportClient(sample_rows), config=_app_config(), cipher=_NoopCipher())
+    [res] = worker.run_all()
+    assert res.status == "failed"
+    assert "db down" in res.error_detail
+    assert repo.runs[0]["status"] == "failed"  # не застрял в 'running'

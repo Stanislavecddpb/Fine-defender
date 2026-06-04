@@ -70,18 +70,22 @@ class IngestionWorker:
                     rows_skipped += 1  # строка без ключа транзакции — нельзя дедуплицировать
                     continue
                 batch.append(RawTxnRecord(wb_txn_key=normalized.txn_key, raw_json=raw))
-        except WbApiError as exc:
+            # upsert тоже внутри try: ошибка БД не должна оставить прогон в 'running'
+            rows_new = self._repo.upsert_raw_transactions(seller.id, batch)
+        except Exception as exc:  # noqa: BLE001 — любая ошибка фиксируется как failed-прогон
             self._repo.finish_run(
                 run, status="failed", rows_ingested=0, finished_at=utcnow(),
                 error_detail=str(exc),
             )
-            logger.error("Выгрузка упала для seller=%s: %s", seller.id, exc)
+            if isinstance(exc, WbApiError):
+                logger.error("Выгрузка упала для seller=%s: %s", seller.id, exc)
+            else:
+                logger.exception("Неожиданная ошибка выгрузки seller=%s", seller.id)
             return IngestionResult(
                 seller_id=str(seller.id), status="failed", rows_seen=rows_seen,
                 rows_new=0, rows_skipped_no_key=rows_skipped, error_detail=str(exc),
             )
 
-        rows_new = self._repo.upsert_raw_transactions(seller.id, batch)
         status = "partial" if rows_skipped else "success"
         self._repo.finish_run(
             run, status=status, rows_ingested=rows_new, finished_at=utcnow(),

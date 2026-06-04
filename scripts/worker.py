@@ -30,19 +30,11 @@ from fine_defender.wb.client import build_report_client  # noqa: E402
 logger = logging.getLogger("fine_defender.worker")
 
 
-def run_cycle() -> None:
-    settings = get_settings()
-    config = get_app_config()
-    repo = PostgresRepository(settings.database_url)
-    client = build_report_client(config.wb, settings=settings)
-
-    ingest = IngestionWorker(repo, client, config=config).run_all()
-    for r in ingest:
+def run_cycle(repo, client, config) -> None:
+    for r in IngestionWorker(repo, client, config=config).run_all():
         logger.info("ingest: %s", r)
-    classify = Classifier(repo, config=config).classify_all()
-    for r in classify:
+    for r in Classifier(repo, config=config).classify_all():
         logger.info("classify: %s", r)
-
     expired = repo.expire_overdue(date.today())
     logger.info("expire: %d штрафов с пропущенным дедлайном → expired", expired)
 
@@ -53,10 +45,17 @@ def main() -> int:
     parser.add_argument("--once", action="store_true", help="Один прогон и выход")
     args = parser.parse_args()
 
-    interval = get_settings().worker_interval_seconds
+    settings = get_settings()
+    config = get_app_config()
+    # Репозиторий (а с ним engine/пул соединений) и клиент строятся ОДИН раз,
+    # а не каждый цикл — иначе фоновый воркер накапливал бы движки и соединения.
+    repo = PostgresRepository(settings.database_url)
+    client = build_report_client(config.wb, settings=settings)
+    interval = settings.worker_interval_seconds
+
     while True:
         try:
-            run_cycle()
+            run_cycle(repo, client, config)
         except Exception:  # воркер не должен падать насмерть из-за одного цикла
             logger.exception("Ошибка в цикле воркера")
         if args.once:
