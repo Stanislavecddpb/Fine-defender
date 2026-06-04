@@ -141,6 +141,15 @@ Docker healthcheck на `/health/ready`.
 Docker-образа. Юнит-тесты не требуют БД; интеграционные включаются через
 `PG_TEST_DSN`.
 
+### Сайт-визитка (лендинг)
+
+[`site/index.html`](site/index.html) — клиентский одностраничный лендинг
+(адаптивный, без внешних зависимостей, фирменная палитра WB). Открывается двойным
+кликом локально. Авто-деплой на GitHub Pages — workflow
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml); включить один раз:
+**Settings → Pages → Source: «GitHub Actions»**. Контакт в CTA (`info@fine-defender.ru`)
+— плейсхолдер, заменить на реальный.
+
 Образ один (`Dockerfile`), роль выбирается аргументом entrypoint
 (`migrate` / `seed-demo` / `worker` / `api`).
 
