@@ -31,7 +31,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-fine_defender = ["templates/*.j2"]
+fine_defender = ["templates/*.j2", "static/*.html"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

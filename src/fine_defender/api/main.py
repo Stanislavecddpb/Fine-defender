@@ -10,9 +10,10 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import date
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from .. import __version__
 from ..config import get_app_config
@@ -57,6 +58,14 @@ def _to_fine_out(fine: Fine) -> FineOut:
 
 
 logger = logging.getLogger(__name__)
+
+_DASHBOARD = Path(__file__).resolve().parent.parent / "static" / "dashboard.html"
+
+
+@app.get("/", include_in_schema=False)
+def dashboard() -> FileResponse:
+    """Визуальный дашборд (читает /api/* того же origin)."""
+    return FileResponse(_DASHBOARD)
 
 
 @app.get("/health")

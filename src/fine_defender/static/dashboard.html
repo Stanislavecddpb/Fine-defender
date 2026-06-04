@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fine Defender — дашборд</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23CB11AB'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='Arial'%3E%E2%82%BD%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --primary:#4A1D6A;--accent:#CB11AB;--dark:#211B2E;--gray:#6B6B76;
+    --light:#F5F2F8;--card:#EEE7F4;--green:#1F9D55;--amber:#E8A317;--red:#D6336C;
+    --font:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--dark);background:var(--light)}
+  header{background:linear-gradient(135deg,var(--primary),#6a2a96);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:800;font-size:18px}
+  header h1{font-size:19px;font-weight:800}
+  header .seller{margin-left:auto;font-size:14px;color:#e3d4ef}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px}
+  .chips{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .chip{background:#fff;border-radius:14px;padding:16px 20px;box-shadow:0 6px 18px rgba(74,29,106,.08);flex:1 1 200px}
+  .chip .l{font-size:13px;color:var(--gray)}
+  .chip .v{font-size:26px;font-weight:800;color:var(--primary);margin-top:4px}
+  .chip.win .v{color:var(--green)}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  select,button{font-family:inherit;font-size:14px}
+  select{padding:8px 12px;border-radius:8px;border:1px solid #d9cfe6;background:#fff}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer}
+  .btn:hover{filter:brightness(1.06)}
+  .btn.sec{background:#fff;color:var(--primary);border:1px solid #d9cfe6}
+  .btn.sm{padding:6px 12px;font-size:13px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(74,29,106,.06)}
+  th{background:var(--primary);color:#fff;text-align:left;padding:12px 14px;font-size:13px}
+  td{padding:12px 14px;border-bottom:1px solid #f0ecf5;font-size:14px}
+  tr:nth-child(even) td{background:#faf8fc}
+  tr.clickable:hover td{background:#f1e9f7;cursor:pointer}
+  .amt{font-weight:700;white-space:nowrap}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .red{background:#fde3ec;color:var(--red)}
+  .amber{background:#fdf0d8;color:#b9790c}
+  .green{background:#e3f6ec;color:var(--green)}
+  .grayp{background:#eceaf0;color:var(--gray)}
+  .cat{font-size:12px;color:var(--gray)}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(33,27,46,.5);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:20}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:16px;max-width:760px;width:100%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h2{color:var(--primary);font-size:20px;margin-bottom:6px}
+  .modal .meta{color:var(--gray);font-size:13px;margin-bottom:2px}
+  .modal h3{font-size:15px;margin:18px 0 8px;color:var(--dark)}
+  .draft{background:var(--light);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px;line-height:1.5;border-left:4px solid var(--accent);max-height:320px;overflow:auto}
+  .checklist li{font-size:13.5px;margin:5px 0 5px 18px}
+  .events li{font-size:13px;color:#444;margin:4px 0;list-style:none}
+  .events .ev-status{font-weight:700;color:var(--primary)}
+  .modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .x{float:right;cursor:pointer;color:var(--gray);font-size:22px;line-height:1}
+  .empty{padding:40px;text-align:center;color:var(--gray)}
+  .note{font-size:12px;color:var(--gray);margin-top:18px}
+  .err{background:#fde3ec;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:12px;display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">₽</div>
+  <h1>Fine Defender — дашборд</h1>
+  <div class="seller" id="sellerName">загрузка…</div>
+</header>
+
+<div class="wrap">
+  <div class="err" id="err"></div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="toolbar">
+    <label>Фильтр:
+      <select id="statusFilter">
+        <option value="">все статусы</option>
+        <option value="disputable">disputable (оспоримые)</option>
+        <option value="drafting">drafting (черновик готов)</option>
+        <option value="won">won (отбито)</option>
+        <option value="expired">expired (просрочен)</option>
+        <option value="new">new (прочие)</option>
+      </select>
+    </label>
+    <select id="catFilter">
+      <option value="">все категории</option>
+      <option value="oversize_logistics">oversize_logistics</option>
+      <option value="other">other</option>
+    </select>
+    <button class="btn sec sm" id="refresh">Обновить</button>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Категория</th><th>Сумма</th><th>Начислен</th><th>Дедлайн</th><th>Состояние</th><th></th>
+    </tr></thead>
+    <tbody id="rows"><tr><td colspan="6" class="empty">Загрузка…</td></tr></tbody>
+  </table>
+
+  <p class="note">Данные читаются из реального API (<code id="apibase"></code>) и БД Postgres. Это боевой код в режиме демо-данных (mock WB).</p>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let sellerId = null;
+document.getElementById('apibase').textContent = location.origin;
+
+function showErr(msg){ const e=$('#err'); e.textContent=msg; e.style.display='block'; }
+function clearErr(){ $('#err').style.display='none'; }
+
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  if(!r.ok){ throw new Error('HTTP '+r.status+' '+(await r.text())); }
+  return r.status===204 ? null : r.json();
+}
+const money = v => Number(v).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';
+const fmtDate = d => d ? d.split('-').reverse().join('.') : '—';
+
+function statePill(f){
+  if(f.status==='won') return '<span class="pill green">отбито</span>';
+  if(f.status==='expired') return '<span class="pill red">просрочен</span>';
+  if(f.dispute_deadline===null) return '<span class="pill grayp">'+f.status+'</span>';
+  const d = f.days_to_deadline;
+  if(d<0) return '<span class="pill red">просрочен ('+d+' дн)</span>';
+  if(f.deadline_soon) return '<span class="pill amber">горит — '+d+' дн</span>';
+  return '<span class="pill green">в запасе — '+d+' дн</span>';
+}
+
+async function boot(){
+  try{
+    const sellers = await api('/api/sellers');
+    if(!sellers.length){ showErr('В БД нет селлеров. Запустите воркер с DEMO_SEED=true.'); return; }
+    sellerId = sellers[0].id;
+    $('#sellerName').textContent = '👤 '+(sellers[0].name||sellerId);
+    await refresh();
+  }catch(e){ showErr('Не удалось загрузить данные: '+e.message); }
+}
+
+async function refresh(){
+  clearErr();
+  const [summary, fines] = await Promise.all([
+    api('/api/summary?seller_id='+sellerId),
+    api('/api/fines?seller_id='+sellerId
+        + (statusFilter.value?'&status='+statusFilter.value:'')
+        + (catFilter.value?'&category='+catFilter.value:'')),
+  ]);
+  renderChips(summary);
+  renderRows(fines);
+}
+
+function renderChips(s){
+  $('#chips').innerHTML = `
+    <div class="chip"><div class="l">Штрафов всего</div><div class="v">${s.fines_total}</div></div>
+    <div class="chip"><div class="l">Оспоримых</div><div class="v">${s.disputable_total}</div></div>
+    <div class="chip"><div class="l">Под возврат</div><div class="v">${money(s.recoverable_total)}</div></div>
+    <div class="chip win"><div class="l">Отбито</div><div class="v">${money(s.recovered_total)}</div></div>`;
+}
+
+function renderRows(fines){
+  const tb = $('#rows');
+  if(!fines.length){ tb.innerHTML='<tr><td colspan="6" class="empty">Нет штрафов по фильтру</td></tr>'; return; }
+  tb.innerHTML = fines.map(f=>`
+    <tr class="clickable" data-id="${f.id}">
+      <td><div>${f.category}</div><div class="cat">${f.reason_raw.slice(0,46)}${f.reason_raw.length>46?'…':''}</div></td>
+      <td class="amt">${money(f.amount)}</td>
+      <td>${fmtDate(f.charged_at)}</td>
+      <td>${fmtDate(f.dispute_deadline)}</td>
+      <td>${statePill(f)}</td>
+      <td><button class="btn sm sec">Открыть</button></td>
+    </tr>`).join('');
+  tb.querySelectorAll('tr.clickable').forEach(tr=>tr.onclick=()=>openFine(tr.dataset.id));
+}
+
+async function openFine(id){
+  clearErr();
+  const card = await api('/api/fines/'+id);
+  const f = card.fine, raw = card.raw_json||{};
+  const evs = card.events.map(e=>`<li><span class="ev-status">${e.status}</span>${e.recovered_amount?(' · '+money(e.recovered_amount)):''}${e.note?(' · '+e.note):''} <span style="color:#999">(${(e.created_at||'').slice(0,16).replace('T',' ')})</span></li>`).join('') || '<li style="color:#999">пока нет событий</li>';
+  const draftBlock = card.draft
+    ? `<h3>Черновик претензии</h3><div class="draft">${escapeHtml(card.draft.body_md)}</div>
+       <h3>Чек-лист доказательств</h3><ul class="checklist">${card.draft.evidence_checklist.map(i=>'<li>'+escapeHtml(i)+'</li>').join('')}</ul>`
+    : '<p style="color:#999;margin-top:8px">Черновик ещё не сгенерирован.</p>';
+  const canDraft = f.category==='oversize_logistics';
+
+  $('#modal').innerHTML = `
+    <span class="x" onclick="closeModal()">×</span>
+    <h2>${f.category} · ${money(f.amount)}</h2>
+    <div class="meta">Артикул (nm_id): ${raw.nm_id ?? '—'} · Штрихкод: ${raw.shk_id ?? '—'} · Товар: ${escapeHtml(raw.subject_name||'—')}</div>
+    <div class="meta">Начислен: ${fmtDate(f.charged_at)} · Дедлайн: ${fmtDate(f.dispute_deadline)} · Статус: <b>${f.status}</b> ${statePill(f)}</div>
+    <div class="meta">Основание (WB): «${escapeHtml(f.reason_raw)}»</div>
+    ${draftBlock}
+    <h3>История статусов</h3><ul class="events">${evs}</ul>
+    <div class="modal-actions">
+      ${canDraft?'<button class="btn" id="genBtn">Сгенерировать претензию</button>':''}
+      <button class="btn sec" id="wonBtn">Отметить возврат (won)</button>
+      <button class="btn sec" onclick="closeModal()">Закрыть</button>
+    </div>`;
+  $('#overlay').classList.add('show');
+  if(canDraft) $('#genBtn').onclick = async ()=>{ try{ await api('/api/fines/'+id+'/draft',{method:'POST'}); await openFine(id); await refresh(); }catch(e){ showErr(e.message);} };
+  $('#wonBtn').onclick = async ()=>{
+    const a = prompt('Сумма фактического возврата, ₽:', String(f.amount));
+    if(a===null) return;
+    try{ await api('/api/fines/'+id+'/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'won',recovered_amount:a,note:'Отмечено в дашборде'})});
+      await openFine(id); await refresh(); }catch(e){ showErr(e.message); }
+  };
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function closeModal(){ $('#overlay').classList.remove('show'); }
+$('#overlay').onclick = e=>{ if(e.target.id==='overlay') closeModal(); };
+$('#refresh').onclick = refresh;
+$('#statusFilter').onchange = refresh;
+$('#catFilter').onchange = refresh;
+boot();
+</script>
+</body>
+</html>

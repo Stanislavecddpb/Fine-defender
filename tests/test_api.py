@@ -30,6 +30,13 @@ def test_readiness():
     assert r.json()["status"] == "ready"
 
 
+def test_dashboard_served():
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    assert "Fine Defender" in r.text
+
+
 def test_fines_listed_with_deadline():
     sid = _seller_id()
     fines = client.get("/api/fines", params={"seller_id": sid}).json()

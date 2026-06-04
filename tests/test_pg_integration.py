@@ -145,9 +145,16 @@ def test_expire_overdue_on_postgres(pg):
         status="disputable",
     ))
 
-    assert repo.expire_overdue(today) == 1
+    # expire_overdue — глобальный (по всем селлерам, как нужно воркеру), поэтому
+    # счётчик зависит от чужих данных в общей БД. Проверяем изолированно — статусы
+    # ИМЕННО нашего селлера (list_fines фильтрует по seller_id).
+    n = repo.expire_overdue(today)
+    assert n >= 1  # как минимум наш просроченный штраф
     statuses = {f.amount: f.status for f in repo.list_fines(seller_id)}
     assert statuses[Decimal("500.00")] == "expired"
     assert statuses[Decimal("700.00")] == "disputable"
-    # повторно — идемпотентно
-    assert repo.expire_overdue(today) == 0
+    # идемпотентно: повторный прогон не меняет статусы нашего селлера
+    repo.expire_overdue(today)
+    statuses2 = {f.amount: f.status for f in repo.list_fines(seller_id)}
+    assert statuses2[Decimal("500.00")] == "expired"
+    assert statuses2[Decimal("700.00")] == "disputable"

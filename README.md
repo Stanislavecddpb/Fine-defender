@@ -91,9 +91,17 @@ pytest
 
 ```bash
 uvicorn fine_defender.api.main:app --reload
-# затем открыть http://127.0.0.1:8000/docs (Swagger)
+# дашборд:  http://127.0.0.1:8000/        (кликабельный UI)
+# Swagger:  http://127.0.0.1:8000/docs
 # APP_BACKEND=memory (по умолчанию) сам засевает демо-штрафы из фикстуры
 ```
+
+**Визуальный дашборд** ([src/fine_defender/static/dashboard.html](src/fine_defender/static/dashboard.html))
+отдаётся по `/` тем же сервером и ходит в `/api/*` того же origin: список штрафов с
+подсветкой дедлайнов, сводка «отбито ₽», карточка штрафа, кнопки «сгенерировать
+претензию» и «отметить возврат». Это самый простой способ проверить продукт
+**без реального кабинета WB** — поднимите стек (`docker compose up`) и откройте
+`http://localhost:8000/`.
 
 ## Боевой запуск — Docker Compose
 
