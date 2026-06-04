@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  tests:
+    name: Тесты (unit + Postgres-интеграция)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fine_defender
+          POSTGRES_PASSWORD: ci_pw
+          POSTGRES_DB: fine_defender
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fine_defender -d fine_defender"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://fine_defender:ci_pw@localhost:5432/fine_defender
+      PG_TEST_DSN: postgresql+psycopg://fine_defender:ci_pw@localhost:5432/fine_defender
+      # CI-only ключ (тесты используют NoopCipher; реальные секреты — в GitHub Secrets)
+      TOKEN_ENCRYPTION_KEY: IvnQ9HefdQtOOu400YqK1oYpzNysgCtDX-yWCTyeWh0=
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Применение миграций
+        run: python scripts/apply_migrations.py
+
+      - name: Тесты (включая интеграцию с Postgres)
+        run: pytest -q
+
+  docker-build:
+    name: Сборка Docker-образа
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build (без публикации)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: fine-defender:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

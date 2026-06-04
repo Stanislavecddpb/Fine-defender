@@ -1,0 +1,75 @@
+# Боевой стек Fine Defender: Postgres + миграции + API + фоновый воркер.
+# Запуск демо (без реального токена WB, mock-режим):
+#   docker compose up --build
+# API: http://localhost:8000/docs
+#
+# Для боя: задать TOKEN_ENCRYPTION_KEY и WB_CLIENT_MODE=live в .env,
+# завести селлеров через `docker compose run --rm api python scripts/seed_seller.py ...`
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fine_defender
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fine_defender_pw}
+      POSTGRES_DB: fine_defender
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fine_defender -d fine_defender"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  migrate:
+    build: .
+    command: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://fine_defender:${POSTGRES_PASSWORD:-fine_defender_pw}@db:5432/fine_defender
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    restart: "no"
+
+  api:
+    build: .
+    command: ["api"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql+psycopg://fine_defender:${POSTGRES_PASSWORD:-fine_defender_pw}@db:5432/fine_defender
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      APP_BACKEND: postgres
+      WB_CLIENT_MODE: ${WB_CLIENT_MODE:-mock}
+      DEMO_SEED: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health/ready').status==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    build: .
+    command: ["worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql+psycopg://fine_defender:${POSTGRES_PASSWORD:-fine_defender_pw}@db:5432/fine_defender
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      WB_CLIENT_MODE: ${WB_CLIENT_MODE:-mock}
+      DEMO_SEED: ${DEMO_SEED:-true}
+      WORKER_INTERVAL_SECONDS: ${WORKER_INTERVAL_SECONDS:-3600}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+volumes:
+  pgdata:

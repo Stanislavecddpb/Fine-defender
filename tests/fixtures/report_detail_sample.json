@@ -1,0 +1,57 @@
+[
+  {
+    "rrd_id": 100001,
+    "srid": "srid-aaa-001",
+    "rr_dt": "2026-05-04",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Штраф за превышение габаритов по результатам обмера",
+    "penalty": "350,50",
+    "shk_id": 9001112223334,
+    "ppvz_for_pay": "1290.00",
+    "nm_id": 555111,
+    "subject_name": "Кружка"
+  },
+  {
+    "rrd_id": 100002,
+    "srid": "srid-aaa-002",
+    "rr_dt": "2026-05-05T00:00:00",
+    "supplier_oper_name": "Штраф",
+    "bonus_type_name": "Несоответствие размеров товара карточке (обмер)",
+    "penalty": "1 200,00",
+    "shk_id": 9001112223335,
+    "ppvz_for_pay": "0",
+    "nm_id": 555112,
+    "subject_name": "Чайник"
+  },
+  {
+    "rrd_id": 100003,
+    "srid": "srid-aaa-003",
+    "rr_dt": "2026-05-06",
+    "supplier_oper_name": "Продажа",
+    "bonus_type_name": "",
+    "penalty": "0",
+    "shk_id": 9001112223336,
+    "ppvz_for_pay": "2500.00",
+    "nm_id": 555113,
+    "subject_name": "Ложка"
+  },
+  {
+    "rrd_id": 100004,
+    "srid": "srid-aaa-004",
+    "rr_dt": "2026-05-07",
+    "supplier_oper_name": "Удержание",
+    "bonus_type_name": "Штраф за подмену товара",
+    "penalty": 500,
+    "shk_id": 9001112223337,
+    "ppvz_for_pay": "0",
+    "nm_id": 555114,
+    "subject_name": "Вилка"
+  },
+  {
+    "rr_dt": "2026-05-08",
+    "supplier_oper_name": "Корректировка",
+    "bonus_type_name": "Техническая строка без идентификатора транзакции",
+    "penalty": "0",
+    "ppvz_for_pay": "0"
+  }
+]

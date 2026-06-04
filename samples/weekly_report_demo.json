@@ -1,0 +1,81 @@
+[
+  {
+    "rrd_id": 200101, "srid": "0a1b2c3d-0001", "rr_dt": "2026-05-20",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Корректировка логистики: превышение габаритов по результатам обмера",
+    "penalty": "1 480,00", "shk_id": 17700000001, "ppvz_for_pay": "0",
+    "nm_id": 88010001, "subject_name": "Органайзер для кухни"
+  },
+  {
+    "rrd_id": 200102, "srid": "0a1b2c3d-0002", "rr_dt": "2026-05-22",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Штраф за неверно указанные габариты (обнаружено при обмере)",
+    "penalty": "920,50", "shk_id": 17700000002, "ppvz_for_pay": "0",
+    "nm_id": 88010002, "subject_name": "Кашпо для цветов"
+  },
+  {
+    "rrd_id": 200103, "srid": "0a1b2c3d-0003", "rr_dt": "2026-06-01",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Несоответствие размеров товара карточке",
+    "penalty": "2 310,00", "shk_id": 17700000003, "ppvz_for_pay": "0",
+    "nm_id": 88010003, "subject_name": "Сушилка для белья напольная"
+  },
+  {
+    "rrd_id": 200104, "srid": "0a1b2c3d-0004", "rr_dt": "2026-05-06",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Превышение габаритов (обмер на складе)",
+    "penalty": "1 050,00", "shk_id": 17700000004, "ppvz_for_pay": "0",
+    "nm_id": 88010004, "subject_name": "Коробка для хранения 50л"
+  },
+  {
+    "rrd_id": 200105, "srid": "0a1b2c3d-0005", "rr_dt": "2026-04-20",
+    "supplier_oper_name": "Логистика",
+    "bonus_type_name": "Габариты не соответствуют заявленным (по результатам обмера)",
+    "penalty": "780,00", "shk_id": 17700000005, "ppvz_for_pay": "0",
+    "nm_id": 88010005, "subject_name": "Полка настенная"
+  },
+  {
+    "rrd_id": 200106, "srid": "0a1b2c3d-0006", "rr_dt": "2026-05-25",
+    "supplier_oper_name": "Штраф",
+    "bonus_type_name": "Штраф за подмену товара",
+    "penalty": "1500", "shk_id": 17700000006, "ppvz_for_pay": "0",
+    "nm_id": 88010006, "subject_name": "Набор контейнеров"
+  },
+  {
+    "rrd_id": 200107, "srid": "0a1b2c3d-0007", "rr_dt": "2026-05-26",
+    "supplier_oper_name": "Штраф",
+    "bonus_type_name": "Штраф за отсутствие обязательной маркировки",
+    "penalty": "3000", "shk_id": 17700000007, "ppvz_for_pay": "0",
+    "nm_id": 88010007, "subject_name": "Текстиль домашний"
+  },
+  {
+    "rrd_id": 200108, "srid": "0a1b2c3d-0008", "rr_dt": "2026-05-27",
+    "supplier_oper_name": "Удержание",
+    "bonus_type_name": "Удержание за брак при приёмке",
+    "penalty": "640,00", "shk_id": 17700000008, "ppvz_for_pay": "0",
+    "nm_id": 88010008, "subject_name": "Ваза стеклянная"
+  },
+  {
+    "rrd_id": 200109, "srid": "0a1b2c3d-0009", "rr_dt": "2026-05-21",
+    "supplier_oper_name": "Продажа", "bonus_type_name": "",
+    "penalty": "0", "shk_id": 17700000009, "ppvz_for_pay": "1990.00",
+    "nm_id": 88010001, "subject_name": "Органайзер для кухни"
+  },
+  {
+    "rrd_id": 200110, "srid": "0a1b2c3d-0010", "rr_dt": "2026-05-21",
+    "supplier_oper_name": "Продажа", "bonus_type_name": "",
+    "penalty": "0", "shk_id": 17700000010, "ppvz_for_pay": "2450.00",
+    "nm_id": 88010003, "subject_name": "Сушилка для белья напольная"
+  },
+  {
+    "rrd_id": 200111, "srid": "0a1b2c3d-0011", "rr_dt": "2026-05-23",
+    "supplier_oper_name": "Логистика", "bonus_type_name": "Логистика до клиента",
+    "penalty": "0", "shk_id": 17700000011, "ppvz_for_pay": "0",
+    "nm_id": 88010002, "subject_name": "Кашпо для цветов"
+  },
+  {
+    "rr_dt": "2026-05-28", "supplier_oper_name": "Корректировка",
+    "bonus_type_name": "Техническая строка без идентификатора транзакции",
+    "penalty": "0", "ppvz_for_pay": "0"
+  }
+]

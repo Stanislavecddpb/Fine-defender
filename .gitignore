@@ -1,0 +1,32 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# Секреты — НИКОГДА не коммитим
+.env
+*.key
+secrets/
+
+# IDE / OS / агент
+.idea/
+.vscode/
+.DS_Store
+.claude/
+
+# Превью презентации (служебное)
+_deck_preview/
+
+# Тесты / кэш
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage

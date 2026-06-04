@@ -1,0 +1,8 @@
+# Нормализация переносов строк. Скрипты, исполняемые в Linux-контейнере, — строго LF.
+* text=auto
+*.sh text eol=lf
+entrypoint.sh text eol=lf
+*.py text
+*.yml text
+*.yaml text
+*.md text
