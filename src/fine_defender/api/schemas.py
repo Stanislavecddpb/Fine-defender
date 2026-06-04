@@ -59,3 +59,39 @@ class EventIn(BaseModel):
     status: str
     recovered_amount: Decimal | None = None
     note: str | None = None
+
+
+# --- Кабинет / авторизация ---
+
+
+class RegisterIn(BaseModel):
+    email: str
+    password: str
+    company_name: str | None = None
+    wb_token: str | None = None  # можно ввести при регистрации или позже
+
+
+class LoginIn(BaseModel):
+    email: str
+    password: str
+
+
+class TokenIn(BaseModel):
+    wb_token: str
+
+
+class MeOut(BaseModel):
+    id: uuid.UUID
+    name: str | None
+    email: str | None
+    has_token: bool
+    token_scopes: list[str]
+
+
+class IngestRunOut(BaseModel):
+    rows_seen: int
+    rows_new: int
+    fines_new: int
+    by_category: dict[str, int]
+    expired: int
+    status: str

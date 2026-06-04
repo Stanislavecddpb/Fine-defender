@@ -23,6 +23,7 @@ from fine_defender.config import get_settings  # noqa: E402
 from fine_defender.crypto import TokenCipher  # noqa: E402
 from fine_defender.db.models import Seller  # noqa: E402
 from fine_defender.logging_utils import configure_logging  # noqa: E402
+from fine_defender.security import hash_password  # noqa: E402
 
 
 def main() -> int:
@@ -35,13 +36,17 @@ def main() -> int:
             print(f"Селлеры уже есть (id={existing.id}) — засев пропущен.")
             return 0
         enc = TokenCipher().encrypt("DEMO-PLACEHOLDER-TOKEN")
+        email = "demo@fine-defender.ru"
+        password = "demo12345"
         seller = Seller(
             id=uuid.uuid4(), name="ООО Ромашка (демо)", wb_token_enc=enc,
             token_scopes=["read"], created_at=datetime.now(timezone.utc), is_active=True,
+            email=email, password_hash=hash_password(password),
         )
         s.add(seller)
         s.commit()
         print(f"Демо-селлер заведён: id={seller.id}")
+        print(f"Вход в кабинет: {email} / {password}")
     return 0
 
 

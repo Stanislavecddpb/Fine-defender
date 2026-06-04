@@ -18,18 +18,25 @@ from pathlib import Path
 from ..classifier import Classifier
 from ..config import get_app_config, get_settings
 from ..repository import InMemoryRepository, RawTxnRecord, Repository, Seller
+from ..security import hash_password
 from ..wb.adapter import normalize_row
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SAMPLE = Path("tests/fixtures/report_detail_sample.json")
 
+# Демо-логин для memory-бэкенда (кабинет можно открыть без регистрации).
+DEMO_EMAIL = "demo@fine-defender.ru"
+DEMO_PASSWORD = "demo12345"
+
 
 def _seed_memory() -> InMemoryRepository:
     seller = Seller(
-        id=uuid.uuid4(), name="ООО Ромашка (демо)", wb_token_enc=b"", token_scopes=["read"]
+        id=uuid.uuid4(), name="ООО Ромашка (демо)", wb_token_enc=b"", token_scopes=["read"],
+        email=DEMO_EMAIL, password_hash=hash_password(DEMO_PASSWORD),
     )
     repo = InMemoryRepository(sellers=[seller])
+    logger.info("Демо-вход: %s / %s", DEMO_EMAIL, DEMO_PASSWORD)
 
     sample_path = Path(os.environ.get("SAMPLE_REPORT_PATH", _DEFAULT_SAMPLE))
     if not sample_path.exists():

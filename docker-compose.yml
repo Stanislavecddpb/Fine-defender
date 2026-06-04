@@ -43,6 +43,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://fine_defender:${POSTGRES_PASSWORD:-fine_defender_pw}@db:5432/fine_defender
       TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-insecure-session-secret-change-me}
       APP_BACKEND: postgres
       WB_CLIENT_MODE: ${WB_CLIENT_MODE:-mock}
       DEMO_SEED: "false"

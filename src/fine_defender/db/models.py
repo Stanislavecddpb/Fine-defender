@@ -34,6 +34,8 @@ class Seller(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    email: Mapped[str | None] = mapped_column(Text, nullable=True, unique=True)
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     wb_token_enc: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     token_scopes: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

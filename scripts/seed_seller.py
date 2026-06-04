@@ -34,12 +34,23 @@ def main() -> int:
     parser.add_argument(
         "--scopes", default="read", help="Скоупы токена через запятую (только read на MVP)"
     )
+    parser.add_argument("--email", help="Логин для входа в кабинет (опционально)")
     args = parser.parse_args()
 
     token = os.environ.get("WB_TOKEN")
     if not token:
         print("Ошибка: задайте WB_TOKEN через переменную окружения.", file=sys.stderr)
         return 1
+
+    # Пароль для входа (опционально) — через env, чтобы не светить в истории шелла.
+    password = os.environ.get("SELLER_PASSWORD")
+    pwd_hash = None
+    if args.email:
+        if not password:
+            print("Ошибка: для --email задайте SELLER_PASSWORD через env.", file=sys.stderr)
+            return 1
+        from fine_defender.security import hash_password
+        pwd_hash = hash_password(password)
 
     settings = get_settings()
     cipher = TokenCipher()
@@ -50,6 +61,8 @@ def main() -> int:
         seller = Seller(
             id=uuid.uuid4(),
             name=args.name,
+            email=(args.email.strip().lower() if args.email else None),
+            password_hash=pwd_hash,
             wb_token_enc=enc,
             token_scopes=[x.strip() for x in args.scopes.split(",") if x.strip()],
             created_at=datetime.now(timezone.utc),
@@ -57,7 +70,8 @@ def main() -> int:
         )
         s.add(seller)
         s.commit()
-        print(f"Селлер заведён: id={seller.id} name={seller.name}")  # токен не печатаем
+        login = f" login={seller.email}" if seller.email else ""
+        print(f"Селлер заведён: id={seller.id} name={seller.name}{login}")  # токен/пароль не печатаем
     return 0
 
 

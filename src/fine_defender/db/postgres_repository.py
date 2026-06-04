@@ -17,6 +17,7 @@ from decimal import Decimal
 
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..repository import (
@@ -54,15 +55,57 @@ class PostgresRepository:
         with self._engine.connect() as conn:
             conn.execute(text("SELECT 1"))
 
-    # --- селлеры ---
+    # --- селлеры / кабинет ---
+    @staticmethod
+    def _to_seller(r: Seller) -> SellerDTO:
+        return SellerDTO(
+            id=r.id, name=r.name, wb_token_enc=bytes(r.wb_token_enc or b""),
+            token_scopes=list(r.token_scopes or []),
+            email=r.email, password_hash=r.password_hash,
+        )
+
     def get_active_sellers(self) -> list[SellerDTO]:
         with self._Session() as s:
             rows = s.scalars(select(Seller).where(Seller.is_active.is_(True))).all()
-            return [
-                SellerDTO(id=r.id, name=r.name, wb_token_enc=bytes(r.wb_token_enc),
-                          token_scopes=list(r.token_scopes or []))
-                for r in rows
-            ]
+            return [self._to_seller(r) for r in rows]
+
+    def get_seller(self, seller_id: uuid.UUID) -> SellerDTO | None:
+        with self._Session() as s:
+            r = s.get(Seller, seller_id)
+            return self._to_seller(r) if r else None
+
+    def get_seller_by_email(self, email: str) -> SellerDTO | None:
+        with self._Session() as s:
+            r = s.scalar(select(Seller).where(Seller.email == email.strip().lower()))
+            return self._to_seller(r) if r else None
+
+    def create_seller(
+        self, *, name: str | None, email: str, password_hash: str,
+        wb_token_enc: bytes, token_scopes: list[str],
+    ) -> SellerDTO:
+        with self._Session() as s:
+            obj = Seller(
+                id=uuid.uuid4(), name=name, email=email.strip().lower(),
+                password_hash=password_hash, wb_token_enc=wb_token_enc,
+                token_scopes=token_scopes, created_at=_utcnow(), is_active=True,
+            )
+            s.add(obj)
+            try:
+                s.commit()
+            except IntegrityError as exc:
+                s.rollback()
+                raise ValueError("email уже зарегистрирован") from exc
+            return self._to_seller(obj)
+
+    def update_token(
+        self, seller_id: uuid.UUID, *, wb_token_enc: bytes, token_scopes: list[str]
+    ) -> None:
+        with self._Session() as s:
+            obj = s.get(Seller, seller_id)
+            if obj is not None:
+                obj.wb_token_enc = wb_token_enc
+                obj.token_scopes = token_scopes
+                s.commit()
 
     # --- выгрузка (M1) ---
     def start_run(self, seller_id: uuid.UUID, started_at: datetime) -> RunHandle:

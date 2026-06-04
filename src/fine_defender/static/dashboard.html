@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Fine Defender — дашборд</title>
+<title>Fine Defender — личный кабинет</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23CB11AB'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='Arial'%3E%E2%82%BD%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
@@ -13,23 +13,44 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:var(--font);color:var(--dark);background:var(--light)}
-  header{background:linear-gradient(135deg,var(--primary),#6a2a96);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  a{color:var(--accent)}
+  /* header */
+  header{background:linear-gradient(135deg,var(--primary),#6a2a96);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .logo{width:36px;height:36px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:800;font-size:18px}
-  header h1{font-size:19px;font-weight:800}
-  header .seller{margin-left:auto;font-size:14px;color:#e3d4ef}
+  header h1{font-size:18px;font-weight:800}
+  header .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:14px;color:#e3d4ef}
   .wrap{max-width:1180px;margin:0 auto;padding:22px}
-  .chips{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.06)}
+  .btn.sec{background:#fff;color:var(--primary);border:1px solid #d9cfe6}
+  .btn.sm{padding:6px 12px;font-size:13px}
+  .btn:disabled{opacity:.6;cursor:default}
+  /* auth */
+  .auth{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .authcard{background:#fff;border-radius:18px;box-shadow:0 16px 50px rgba(74,29,106,.18);width:100%;max-width:420px;padding:30px}
+  .authcard .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--primary);font-size:20px;margin-bottom:6px}
+  .authcard .sub{color:var(--gray);font-size:14px;margin-bottom:20px}
+  .tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--light);border-radius:10px;padding:4px}
+  .tabs button{flex:1;border:none;background:transparent;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;color:var(--gray)}
+  .tabs button.active{background:#fff;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  label.f{display:block;font-size:13px;color:var(--gray);margin:12px 0 5px}
+  input{width:100%;padding:11px 13px;border:1px solid #d9cfe6;border-radius:9px;font-size:14px;font-family:inherit}
+  input:focus{outline:none;border-color:var(--accent)}
+  .authcard .btn{width:100%;margin-top:18px;padding:12px}
+  .hint{font-size:12.5px;color:var(--gray);margin-top:14px;text-align:center}
+  .msg{font-size:13px;padding:9px 12px;border-radius:8px;margin-top:12px;display:none}
+  .msg.err{background:#fde3ec;color:var(--red);display:block}
+  .msg.ok{background:#e3f6ec;color:var(--green);display:block}
+  /* chips */
+  .chips{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
   .chip{background:#fff;border-radius:14px;padding:16px 20px;box-shadow:0 6px 18px rgba(74,29,106,.08);flex:1 1 200px}
   .chip .l{font-size:13px;color:var(--gray)}
   .chip .v{font-size:26px;font-weight:800;color:var(--primary);margin-top:4px}
   .chip.win .v{color:var(--green)}
+  .banner{background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;padding:16px 18px;margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .banner .grow{flex:1;min-width:200px;font-size:14px}
   .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-  select,button{font-family:inherit;font-size:14px}
-  select{padding:8px 12px;border-radius:8px;border:1px solid #d9cfe6;background:#fff}
-  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer}
-  .btn:hover{filter:brightness(1.06)}
-  .btn.sec{background:#fff;color:var(--primary);border:1px solid #d9cfe6}
-  .btn.sm{padding:6px 12px;font-size:13px}
+  select{padding:8px 12px;border-radius:8px;border:1px solid #d9cfe6;background:#fff;font-family:inherit;font-size:14px}
   table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(74,29,106,.06)}
   th{background:var(--primary);color:#fff;text-align:left;padding:12px 14px;font-size:13px}
   td{padding:12px 14px;border-bottom:1px solid #f0ecf5;font-size:14px}
@@ -37,122 +58,176 @@
   tr.clickable:hover td{background:#f1e9f7;cursor:pointer}
   .amt{font-weight:700;white-space:nowrap}
   .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
-  .red{background:#fde3ec;color:var(--red)}
-  .amber{background:#fdf0d8;color:#b9790c}
-  .green{background:#e3f6ec;color:var(--green)}
-  .grayp{background:#eceaf0;color:var(--gray)}
+  .red{background:#fde3ec;color:var(--red)}.amber{background:#fdf0d8;color:#b9790c}
+  .green{background:#e3f6ec;color:var(--green)}.grayp{background:#eceaf0;color:var(--gray)}
   .cat{font-size:12px;color:var(--gray)}
+  .empty{padding:40px;text-align:center;color:var(--gray)}
+  .note{font-size:12px;color:var(--gray);margin-top:18px}
   /* modal */
-  .overlay{position:fixed;inset:0;background:rgba(33,27,46,.5);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:20}
+  .overlay{position:fixed;inset:0;background:rgba(33,27,46,.5);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:30}
   .overlay.show{display:flex}
   .modal{background:#fff;border-radius:16px;max-width:760px;width:100%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
   .modal h2{color:var(--primary);font-size:20px;margin-bottom:6px}
   .modal .meta{color:var(--gray);font-size:13px;margin-bottom:2px}
-  .modal h3{font-size:15px;margin:18px 0 8px;color:var(--dark)}
+  .modal h3{font-size:15px;margin:18px 0 8px}
   .draft{background:var(--light);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px;line-height:1.5;border-left:4px solid var(--accent);max-height:320px;overflow:auto}
   .checklist li{font-size:13.5px;margin:5px 0 5px 18px}
   .events li{font-size:13px;color:#444;margin:4px 0;list-style:none}
   .events .ev-status{font-weight:700;color:var(--primary)}
   .modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
   .x{float:right;cursor:pointer;color:var(--gray);font-size:22px;line-height:1}
-  .empty{padding:40px;text-align:center;color:var(--gray)}
-  .note{font-size:12px;color:var(--gray);margin-top:18px}
-  .err{background:#fde3ec;color:var(--red);padding:10px 14px;border-radius:8px;margin-bottom:12px;display:none}
+  #app{display:none}
+  .spin{color:var(--gray);font-size:13px}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">₽</div>
-  <h1>Fine Defender — дашборд</h1>
-  <div class="seller" id="sellerName">загрузка…</div>
-</header>
 
-<div class="wrap">
-  <div class="err" id="err"></div>
+<!-- ===== AUTH VIEW ===== -->
+<div class="auth" id="authView">
+  <div class="authcard">
+    <div class="brand"><span class="logo">₽</span> Fine Defender</div>
+    <div class="sub">Личный кабинет селлера Wildberries</div>
+    <div class="tabs">
+      <button id="tabLogin" class="active" onclick="setTab('login')">Вход</button>
+      <button id="tabReg" onclick="setTab('register')">Регистрация</button>
+    </div>
 
-  <div class="chips" id="chips"></div>
+    <div id="formLogin">
+      <label class="f">Email</label><input id="li_email" type="email" autocomplete="username" />
+      <label class="f">Пароль</label><input id="li_pass" type="password" autocomplete="current-password" />
+      <button class="btn" onclick="doLogin()">Войти</button>
+    </div>
 
-  <div class="toolbar">
-    <label>Фильтр:
-      <select id="statusFilter">
-        <option value="">все статусы</option>
-        <option value="disputable">disputable (оспоримые)</option>
-        <option value="drafting">drafting (черновик готов)</option>
-        <option value="won">won (отбито)</option>
-        <option value="expired">expired (просрочен)</option>
-        <option value="new">new (прочие)</option>
-      </select>
-    </label>
-    <select id="catFilter">
-      <option value="">все категории</option>
-      <option value="oversize_logistics">oversize_logistics</option>
-      <option value="other">other</option>
-    </select>
-    <button class="btn sec sm" id="refresh">Обновить</button>
+    <div id="formReg" style="display:none">
+      <label class="f">Название компании</label><input id="rg_name" type="text" placeholder="ООО Ромашка" />
+      <label class="f">Email</label><input id="rg_email" type="email" autocomplete="username" />
+      <label class="f">Пароль (мин. 8 символов)</label><input id="rg_pass" type="password" autocomplete="new-password" />
+      <label class="f">WB API-токен (read-only «Финансы») — можно добавить позже</label>
+      <input id="rg_token" type="text" placeholder="необязательно" />
+      <button class="btn" onclick="doRegister()">Зарегистрироваться</button>
+    </div>
+
+    <div class="msg" id="authMsg"></div>
+    <div class="hint" id="demoHint"></div>
   </div>
-
-  <table>
-    <thead><tr>
-      <th>Категория</th><th>Сумма</th><th>Начислен</th><th>Дедлайн</th><th>Состояние</th><th></th>
-    </tr></thead>
-    <tbody id="rows"><tr><td colspan="6" class="empty">Загрузка…</td></tr></tbody>
-  </table>
-
-  <p class="note">Данные читаются из реального API (<code id="apibase"></code>) и БД Postgres. Это боевой код в режиме демо-данных (mock WB).</p>
 </div>
 
-<div class="overlay" id="overlay">
-  <div class="modal" id="modal"></div>
+<!-- ===== APP VIEW ===== -->
+<div id="app">
+  <header>
+    <div class="logo">₽</div>
+    <h1>Fine Defender</h1>
+    <div class="right">
+      <span id="who"></span>
+      <button class="btn sec sm" onclick="logout()">Выйти</button>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="banner" id="tokenBanner" style="display:none">
+      <div class="grow">🔑 <b>WB-токен не добавлен.</b> Введите read-only токен категории «Финансы», чтобы загрузить штрафы.</div>
+      <input id="tok_input" type="text" placeholder="WB API-токен" style="max-width:360px" />
+      <button class="btn" onclick="saveToken()">Сохранить токен</button>
+    </div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="toolbar">
+      <button class="btn" id="runBtn" onclick="runIngest()">↻ Запустить проверку</button>
+      <span class="spin" id="runStatus"></span>
+      <span style="flex:1"></span>
+      <select id="statusFilter" onchange="loadData()">
+        <option value="">все статусы</option>
+        <option value="disputable">disputable</option>
+        <option value="drafting">drafting</option>
+        <option value="won">won</option>
+        <option value="expired">expired</option>
+        <option value="new">new</option>
+      </select>
+      <select id="catFilter" onchange="loadData()">
+        <option value="">все категории</option>
+        <option value="oversize_logistics">oversize_logistics</option>
+        <option value="other">other</option>
+      </select>
+    </div>
+
+    <table>
+      <thead><tr><th>Категория</th><th>Сумма</th><th>Начислен</th><th>Дедлайн</th><th>Состояние</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6" class="empty">Загрузка…</td></tr></tbody>
+    </table>
+    <p class="note">Данные изолированы по вашему аккаунту. Демо-режим: WB заменён фикстурой (mock).</p>
+  </div>
 </div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 
 <script>
 const $ = s => document.querySelector(s);
-let sellerId = null;
-document.getElementById('apibase').textContent = location.origin;
-
-function showErr(msg){ const e=$('#err'); e.textContent=msg; e.style.display='block'; }
-function clearErr(){ $('#err').style.display='none'; }
-
-async function api(path, opts){
-  const r = await fetch(path, opts);
-  if(!r.ok){ throw new Error('HTTP '+r.status+' '+(await r.text())); }
-  return r.status===204 ? null : r.json();
-}
 const money = v => Number(v).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';
 const fmtDate = d => d ? d.split('-').reverse().join('.') : '—';
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-function statePill(f){
-  if(f.status==='won') return '<span class="pill green">отбито</span>';
-  if(f.status==='expired') return '<span class="pill red">просрочен</span>';
-  if(f.dispute_deadline===null) return '<span class="pill grayp">'+f.status+'</span>';
-  const d = f.days_to_deadline;
-  if(d<0) return '<span class="pill red">просрочен ('+d+' дн)</span>';
-  if(f.deadline_soon) return '<span class="pill amber">горит — '+d+' дн</span>';
-  return '<span class="pill green">в запасе — '+d+' дн</span>';
+async function api(path, opts){
+  const r = await fetch(path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
+  if(r.status===401){ showAuth(); throw new Error('unauthorized'); }
+  if(!r.ok){ let d; try{d=(await r.json()).detail}catch{ d=await r.text(); } throw new Error(d||('HTTP '+r.status)); }
+  return r.status===204 ? null : r.json();
 }
 
+// ---- auth ----
+function setTab(t){
+  $('#tabLogin').classList.toggle('active', t==='login');
+  $('#tabReg').classList.toggle('active', t==='register');
+  $('#formLogin').style.display = t==='login'?'block':'none';
+  $('#formReg').style.display = t==='register'?'block':'none';
+  authMsg('');
+}
+function authMsg(text, ok){ const m=$('#authMsg'); m.className='msg'+(text?(ok?' ok':' err'):''); m.textContent=text; }
+function showAuth(){ $('#authView').style.display='grid'; $('#app').style.display='none'; }
+function showApp(){ $('#authView').style.display='none'; $('#app').style.display='block'; }
+
+async function doLogin(){
+  authMsg('');
+  try{
+    await api('/auth/login',{method:'POST',body:JSON.stringify({email:$('#li_email').value,password:$('#li_pass').value})});
+    await boot();
+  }catch(e){ authMsg(e.message==='unauthorized'?'Неверный email или пароль':e.message); }
+}
+async function doRegister(){
+  authMsg('');
+  try{
+    await api('/auth/register',{method:'POST',body:JSON.stringify({
+      company_name:$('#rg_name').value, email:$('#rg_email').value,
+      password:$('#rg_pass').value, wb_token:$('#rg_token').value||null })});
+    await boot();
+  }catch(e){ authMsg(e.message); }
+}
+async function logout(){ try{ await api('/auth/logout',{method:'POST'}); }catch{} showAuth(); }
+
+// ---- app ----
+let me = null;
 async function boot(){
   try{
-    const sellers = await api('/api/sellers');
-    if(!sellers.length){ showErr('В БД нет селлеров. Запустите воркер с DEMO_SEED=true.'); return; }
-    sellerId = sellers[0].id;
-    $('#sellerName').textContent = '👤 '+(sellers[0].name||sellerId);
-    await refresh();
-  }catch(e){ showErr('Не удалось загрузить данные: '+e.message); }
+    me = await fetch('/auth/me').then(r=> r.ok ? r.json() : null);
+  }catch{ me=null; }
+  if(!me){ showAuth(); return; }
+  $('#who').textContent = '👤 '+(me.name || me.email);
+  $('#tokenBanner').style.display = me.has_token ? 'none' : 'flex';
+  showApp();
+  await loadData();
 }
 
-async function refresh(){
-  clearErr();
+async function loadData(){
   const [summary, fines] = await Promise.all([
-    api('/api/summary?seller_id='+sellerId),
-    api('/api/fines?seller_id='+sellerId
-        + (statusFilter.value?'&status='+statusFilter.value:'')
-        + (catFilter.value?'&category='+catFilter.value:'')),
+    api('/api/summary'),
+    api('/api/fines'+qs()),
   ]);
-  renderChips(summary);
-  renderRows(fines);
+  renderChips(summary); renderRows(fines);
 }
-
+function qs(){
+  const s=$('#statusFilter').value, c=$('#catFilter').value;
+  const p=[]; if(s)p.push('status='+s); if(c)p.push('category='+c);
+  return p.length?('?'+p.join('&')):'';
+}
 function renderChips(s){
   $('#chips').innerHTML = `
     <div class="chip"><div class="l">Штрафов всего</div><div class="v">${s.fines_total}</div></div>
@@ -160,37 +235,62 @@ function renderChips(s){
     <div class="chip"><div class="l">Под возврат</div><div class="v">${money(s.recoverable_total)}</div></div>
     <div class="chip win"><div class="l">Отбито</div><div class="v">${money(s.recovered_total)}</div></div>`;
 }
-
+function statePill(f){
+  if(f.status==='won') return '<span class="pill green">отбито</span>';
+  if(f.status==='expired') return '<span class="pill red">просрочен</span>';
+  if(f.dispute_deadline===null) return '<span class="pill grayp">'+f.status+'</span>';
+  const d=f.days_to_deadline;
+  if(d<0) return '<span class="pill red">просрочен ('+d+' дн)</span>';
+  if(f.deadline_soon) return '<span class="pill amber">горит — '+d+' дн</span>';
+  return '<span class="pill green">в запасе — '+d+' дн</span>';
+}
 function renderRows(fines){
-  const tb = $('#rows');
-  if(!fines.length){ tb.innerHTML='<tr><td colspan="6" class="empty">Нет штрафов по фильтру</td></tr>'; return; }
+  const tb=$('#rows');
+  if(!fines.length){ tb.innerHTML='<tr><td colspan="6" class="empty">Штрафов нет. Нажмите «Запустить проверку».</td></tr>'; return; }
   tb.innerHTML = fines.map(f=>`
     <tr class="clickable" data-id="${f.id}">
-      <td><div>${f.category}</div><div class="cat">${f.reason_raw.slice(0,46)}${f.reason_raw.length>46?'…':''}</div></td>
-      <td class="amt">${money(f.amount)}</td>
-      <td>${fmtDate(f.charged_at)}</td>
-      <td>${fmtDate(f.dispute_deadline)}</td>
-      <td>${statePill(f)}</td>
+      <td><div>${f.category}</div><div class="cat">${escapeHtml(f.reason_raw.slice(0,46))}${f.reason_raw.length>46?'…':''}</div></td>
+      <td class="amt">${money(f.amount)}</td><td>${fmtDate(f.charged_at)}</td>
+      <td>${fmtDate(f.dispute_deadline)}</td><td>${statePill(f)}</td>
       <td><button class="btn sm sec">Открыть</button></td>
     </tr>`).join('');
   tb.querySelectorAll('tr.clickable').forEach(tr=>tr.onclick=()=>openFine(tr.dataset.id));
 }
 
+async function runIngest(){
+  const btn=$('#runBtn'); btn.disabled=true; $('#runStatus').textContent='Проверяю кабинет…';
+  try{
+    const r = await api('/api/ingest/run',{method:'POST'});
+    $('#runStatus').textContent = `Готово: транзакций ${r.rows_seen}, новых штрафов ${r.fines_new}` + (r.expired?`, просрочено ${r.expired}`:'');
+    me = await fetch('/auth/me').then(r=>r.json());
+    $('#tokenBanner').style.display = me.has_token ? 'none':'flex';
+    await loadData();
+  }catch(e){ $('#runStatus').textContent = 'Ошибка: '+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+async function saveToken(){
+  const t=$('#tok_input').value.trim(); if(!t) return;
+  try{
+    await api('/api/token',{method:'POST',body:JSON.stringify({wb_token:t})});
+    $('#tok_input').value=''; $('#tokenBanner').style.display='none';
+    await runIngest();
+  }catch(e){ alert('Не удалось сохранить токен: '+e.message); }
+}
+
 async function openFine(id){
-  clearErr();
   const card = await api('/api/fines/'+id);
-  const f = card.fine, raw = card.raw_json||{};
-  const evs = card.events.map(e=>`<li><span class="ev-status">${e.status}</span>${e.recovered_amount?(' · '+money(e.recovered_amount)):''}${e.note?(' · '+e.note):''} <span style="color:#999">(${(e.created_at||'').slice(0,16).replace('T',' ')})</span></li>`).join('') || '<li style="color:#999">пока нет событий</li>';
+  const f=card.fine, raw=card.raw_json||{};
+  const evs = card.events.map(e=>`<li><span class="ev-status">${e.status}</span>${e.recovered_amount?(' · '+money(e.recovered_amount)):''}${e.note?(' · '+escapeHtml(e.note)):''}</li>`).join('') || '<li style="color:#999">событий нет</li>';
   const draftBlock = card.draft
     ? `<h3>Черновик претензии</h3><div class="draft">${escapeHtml(card.draft.body_md)}</div>
        <h3>Чек-лист доказательств</h3><ul class="checklist">${card.draft.evidence_checklist.map(i=>'<li>'+escapeHtml(i)+'</li>').join('')}</ul>`
     : '<p style="color:#999;margin-top:8px">Черновик ещё не сгенерирован.</p>';
   const canDraft = f.category==='oversize_logistics';
-
   $('#modal').innerHTML = `
     <span class="x" onclick="closeModal()">×</span>
     <h2>${f.category} · ${money(f.amount)}</h2>
-    <div class="meta">Артикул (nm_id): ${raw.nm_id ?? '—'} · Штрихкод: ${raw.shk_id ?? '—'} · Товар: ${escapeHtml(raw.subject_name||'—')}</div>
+    <div class="meta">Артикул: ${raw.nm_id ?? '—'} · Штрихкод: ${raw.shk_id ?? '—'} · Товар: ${escapeHtml(raw.subject_name||'—')}</div>
     <div class="meta">Начислен: ${fmtDate(f.charged_at)} · Дедлайн: ${fmtDate(f.dispute_deadline)} · Статус: <b>${f.status}</b> ${statePill(f)}</div>
     <div class="meta">Основание (WB): «${escapeHtml(f.reason_raw)}»</div>
     ${draftBlock}
@@ -201,20 +301,16 @@ async function openFine(id){
       <button class="btn sec" onclick="closeModal()">Закрыть</button>
     </div>`;
   $('#overlay').classList.add('show');
-  if(canDraft) $('#genBtn').onclick = async ()=>{ try{ await api('/api/fines/'+id+'/draft',{method:'POST'}); await openFine(id); await refresh(); }catch(e){ showErr(e.message);} };
-  $('#wonBtn').onclick = async ()=>{
-    const a = prompt('Сумма фактического возврата, ₽:', String(f.amount));
-    if(a===null) return;
-    try{ await api('/api/fines/'+id+'/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'won',recovered_amount:a,note:'Отмечено в дашборде'})});
-      await openFine(id); await refresh(); }catch(e){ showErr(e.message); }
-  };
+  if(canDraft) $('#genBtn').onclick=async()=>{ try{ await api('/api/fines/'+id+'/draft',{method:'POST'}); await openFine(id); await loadData(); }catch(e){ alert(e.message);} };
+  $('#wonBtn').onclick=async()=>{
+    const a=prompt('Сумма фактического возврата, ₽:',String(f.amount)); if(a===null)return;
+    try{ await api('/api/fines/'+id+'/events',{method:'POST',body:JSON.stringify({status:'won',recovered_amount:a,note:'Отмечено в кабинете'})}); await openFine(id); await loadData(); }catch(e){ alert(e.message);} };
 }
-function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function closeModal(){ $('#overlay').classList.remove('show'); }
-$('#overlay').onclick = e=>{ if(e.target.id==='overlay') closeModal(); };
-$('#refresh').onclick = refresh;
-$('#statusFilter').onchange = refresh;
-$('#catFilter').onchange = refresh;
+$('#overlay').onclick=e=>{ if(e.target.id==='overlay') closeModal(); };
+
+// демо-подсказка (только если бэкенд — memory-демо)
+fetch('/health').then(()=>{ $('#demoHint').innerHTML='Демо-доступ: <b>demo@fine-defender.ru</b> / <b>demo12345</b>'; });
 boot();
 </script>
 </body>

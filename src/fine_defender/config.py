@@ -23,6 +23,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://fine_defender:change_me@localhost:5432/fine_defender"
     token_encryption_key: str = ""
+    # Секрет подписи сессионной cookie кабинета. В проде ОБЯЗАТЕЛЬНО задать свой.
+    session_secret: str = "dev-insecure-session-secret-change-me"
     log_level: str = "INFO"
     app_config_path: Path = Path("config/config.yaml")
 

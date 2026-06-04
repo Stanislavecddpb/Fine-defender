@@ -21,6 +21,12 @@ class Seller:
     name: str | None
     wb_token_enc: bytes
     token_scopes: list[str]
+    email: str | None = None
+    password_hash: str | None = None
+
+    @property
+    def has_token(self) -> bool:
+        return bool(self.wb_token_enc)
 
 
 @dataclass
@@ -115,8 +121,17 @@ class Repository(Protocol):
         """Проверка доступности хранилища (для readiness-проб). Бросает при сбое."""
         ...
 
-    # --- селлеры ---
+    # --- селлеры / кабинет ---
     def get_active_sellers(self) -> list[Seller]: ...
+    def get_seller(self, seller_id: uuid.UUID) -> Seller | None: ...
+    def get_seller_by_email(self, email: str) -> Seller | None: ...
+    def create_seller(
+        self, *, name: str | None, email: str, password_hash: str,
+        wb_token_enc: bytes, token_scopes: list[str],
+    ) -> Seller: ...
+    def update_token(
+        self, seller_id: uuid.UUID, *, wb_token_enc: bytes, token_scopes: list[str]
+    ) -> None: ...
 
     # --- выгрузка (M1) ---
     def start_run(self, seller_id: uuid.UUID, started_at: datetime) -> RunHandle: ...
@@ -179,12 +194,38 @@ class InMemoryRepository:
     def ping(self) -> None:
         return None
 
-    # селлеры
+    # селлеры / кабинет
     def get_active_sellers(self) -> list[Seller]:
         return list(self.sellers)
 
     def get_seller(self, seller_id: uuid.UUID) -> Seller | None:
         return next((s for s in self.sellers if s.id == seller_id), None)
+
+    def get_seller_by_email(self, email: str) -> Seller | None:
+        e = email.strip().lower()
+        return next((s for s in self.sellers if (s.email or "").lower() == e), None)
+
+    def create_seller(
+        self, *, name: str | None, email: str, password_hash: str,
+        wb_token_enc: bytes, token_scopes: list[str],
+    ) -> Seller:
+        if self.get_seller_by_email(email) is not None:
+            raise ValueError("email уже зарегистрирован")
+        seller = Seller(
+            id=uuid.uuid4(), name=name, wb_token_enc=wb_token_enc,
+            token_scopes=token_scopes, email=email.strip().lower(),
+            password_hash=password_hash,
+        )
+        self.sellers.append(seller)
+        return seller
+
+    def update_token(
+        self, seller_id: uuid.UUID, *, wb_token_enc: bytes, token_scopes: list[str]
+    ) -> None:
+        s = self.get_seller(seller_id)
+        if s is not None:
+            s.wb_token_enc = wb_token_enc
+            s.token_scopes = token_scopes
 
     # выгрузка
     def start_run(self, seller_id: uuid.UUID, started_at: datetime) -> RunHandle:
