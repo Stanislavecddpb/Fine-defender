@@ -158,3 +158,22 @@ def test_idempotent_ingest():
     second = c.post("/api/ingest/run").json()
     assert second["rows_new"] == 0  # повторная выгрузка не плодит дубли
     assert second["fines_new"] == 0
+
+
+def test_marking_won_twice_does_not_inflate_recovered():
+    c, _ = register("won2@example.com")
+    c.post("/api/ingest/run")
+    fid = c.get("/api/fines", params={"category": "oversize_logistics"}).json()[0]["id"]
+
+    c.post(f"/api/fines/{fid}/events", json={"status": "won", "recovered_amount": "500.00"})
+    once = Decimal(str(c.get("/api/summary").json()["recovered_total"]))
+    # повторные клики тем же значением не накапливают сумму
+    c.post(f"/api/fines/{fid}/events", json={"status": "won", "recovered_amount": "500.00"})
+    c.post(f"/api/fines/{fid}/events", json={"status": "won", "recovered_amount": "500.00"})
+    twice = Decimal(str(c.get("/api/summary").json()["recovered_total"]))
+    assert once == Decimal("500.00")
+    assert twice == once  # не удвоилось
+
+    # история не засорена дублями: одно событие won на штраф
+    events = c.get(f"/api/fines/{fid}").json()["events"]
+    assert sum(1 for e in events if e["status"] == "won") == 1

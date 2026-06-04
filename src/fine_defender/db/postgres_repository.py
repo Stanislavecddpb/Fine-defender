@@ -238,10 +238,23 @@ class PostgresRepository:
                 select(func.coalesce(func.sum(FineRow.recoverable_est), 0))
                 .where(FineRow.seller_id == seller_id, FineRow.status.in_(active))
             ) or Decimal("0")
+            # «Отбито» — один раз на штраф: последнее событие won каждого
+            # выигранного штрафа (повторные клики не накапливают сумму).
+            latest_won = (
+                select(
+                    DisputeEventRow.fine_id.label("fid"),
+                    DisputeEventRow.recovered_amount.label("amt"),
+                )
+                .distinct(DisputeEventRow.fine_id)
+                .where(DisputeEventRow.status == "won")
+                .order_by(DisputeEventRow.fine_id, DisputeEventRow.created_at.desc())
+                .subquery()
+            )
             recovered = s.scalar(
-                select(func.coalesce(func.sum(DisputeEventRow.recovered_amount), 0))
-                .join(FineRow, FineRow.id == DisputeEventRow.fine_id)
-                .where(FineRow.seller_id == seller_id, DisputeEventRow.status == "won")
+                select(func.coalesce(func.sum(latest_won.c.amt), 0))
+                .select_from(FineRow)
+                .join(latest_won, latest_won.c.fid == FineRow.id)
+                .where(FineRow.seller_id == seller_id, FineRow.status == "won")
             ) or Decimal("0")
             fines_total = s.scalar(
                 select(func.count()).select_from(FineRow).where(FineRow.seller_id == seller_id)
@@ -261,6 +274,17 @@ class PostgresRepository:
     ) -> DisputeEvent:
         now = _utcnow()
         with self._Session() as s:
+            # Дедуп: повторный клик с тем же статусом и суммой не плодит события.
+            last = s.scalar(
+                select(DisputeEventRow).where(DisputeEventRow.fine_id == fine_id)
+                .order_by(DisputeEventRow.created_at.desc()).limit(1)
+            )
+            if last is not None and last.status == status and last.recovered_amount == recovered_amount:
+                return DisputeEvent(
+                    id=last.id, fine_id=fine_id, status=last.status,
+                    recovered_amount=last.recovered_amount, note=last.note,
+                    created_at=last.created_at,
+                )
             ev = DisputeEventRow(
                 fine_id=fine_id, status=status, recovered_amount=recovered_amount,
                 note=note, created_at=now,

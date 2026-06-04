@@ -328,12 +328,18 @@ class InMemoryRepository:
             (f.recoverable_est or Decimal("0"))
             for f in fines if f.status in active_statuses
         )
-        fine_ids = {f.id for f in fines}
-        recovered = sum(
-            (e.recovered_amount or Decimal("0"))
-            for e in self.events
-            if e.fine_id in fine_ids and e.status == "won"
-        )
+        # «Отбито» — один раз на штраф: берём сумму из ПОСЛЕДНЕГО события won
+        # каждого выигранного штрафа (повторные клики не накапливают сумму).
+        recovered = Decimal("0")
+        for f in fines:
+            if f.status != "won":
+                continue
+            amt = next(
+                (e.recovered_amount for e in reversed(self.events)
+                 if e.fine_id == f.id and e.status == "won" and e.recovered_amount is not None),
+                None,
+            )
+            recovered += amt or Decimal("0")
         return SummaryView(
             recoverable_total=Decimal(recoverable),
             recovered_total=Decimal(recovered),
@@ -345,6 +351,10 @@ class InMemoryRepository:
         self, fine_id: uuid.UUID, *, status: str,
         recovered_amount: Decimal | None = None, note: str | None = None,
     ) -> DisputeEvent:
+        # Дедуп: повторный клик с тем же статусом и суммой не плодит события.
+        last = next((e for e in reversed(self.events) if e.fine_id == fine_id), None)
+        if last is not None and last.status == status and last.recovered_amount == recovered_amount:
+            return last
         event = DisputeEvent(
             id=uuid.uuid4(), fine_id=fine_id, status=status,
             recovered_amount=recovered_amount, note=note, created_at=utcnow(),

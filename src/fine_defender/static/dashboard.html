@@ -60,6 +60,10 @@
   .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
   .red{background:#fde3ec;color:var(--red)}.amber{background:#fdf0d8;color:#b9790c}
   .green{background:#e3f6ec;color:var(--green)}.grayp{background:#eceaf0;color:var(--gray)}
+  .blue{background:#e4e9fb;color:#3a52b5}
+  .next{background:#eef7ff;border:1px solid #cfe2f5;border-radius:10px;padding:14px 16px;margin-top:14px;font-size:13.5px}
+  .next ol{margin:8px 0 0 18px}.next li{margin:4px 0}
+  .next small{color:var(--gray);display:block;margin-top:8px}
   .cat{font-size:12px;color:var(--gray)}
   .empty{padding:40px;text-align:center;color:var(--gray)}
   .note{font-size:12px;color:var(--gray);margin-top:18px}
@@ -237,6 +241,8 @@ function renderChips(s){
 }
 function statePill(f){
   if(f.status==='won') return '<span class="pill green">отбито</span>';
+  if(f.status==='lost') return '<span class="pill red">отказ WB</span>';
+  if(f.status==='submitted') return '<span class="pill blue">претензия подана</span>';
   if(f.status==='expired') return '<span class="pill red">просрочен</span>';
   if(f.dispute_deadline===null) return '<span class="pill grayp">'+f.status+'</span>';
   const d=f.days_to_deadline;
@@ -278,33 +284,76 @@ async function saveToken(){
   }catch(e){ alert('Не удалось сохранить токен: '+e.message); }
 }
 
+let _lastCard = null;
 async function openFine(id){
   const card = await api('/api/fines/'+id);
+  _lastCard = card;
   const f=card.fine, raw=card.raw_json||{};
   const evs = card.events.map(e=>`<li><span class="ev-status">${e.status}</span>${e.recovered_amount?(' · '+money(e.recovered_amount)):''}${e.note?(' · '+escapeHtml(e.note)):''}</li>`).join('') || '<li style="color:#999">событий нет</li>';
-  const draftBlock = card.draft
-    ? `<h3>Черновик претензии</h3><div class="draft">${escapeHtml(card.draft.body_md)}</div>
-       <h3>Чек-лист доказательств</h3><ul class="checklist">${card.draft.evidence_checklist.map(i=>'<li>'+escapeHtml(i)+'</li>').join('')}</ul>`
-    : '<p style="color:#999;margin-top:8px">Черновик ещё не сгенерирован.</p>';
   const canDraft = f.category==='oversize_logistics';
+
+  let draftBlock, nextBlock='';
+  if(card.draft){
+    draftBlock = `<h3>Черновик претензии</h3><div class="draft" id="draftText">${escapeHtml(card.draft.body_md)}</div>
+       <h3>Чек-лист доказательств</h3><ul class="checklist">${card.draft.evidence_checklist.map(i=>'<li>'+escapeHtml(i)+'</li>').join('')}</ul>`;
+    nextBlock = `<div class="next"><b>Что дальше</b>
+      <ol>
+        <li>Скопируйте или скачайте текст претензии (кнопки ниже).</li>
+        <li>В кабинете WB откройте обращение по этой транзакции (раздел «Финансовые отчёты» → претензия по удержанию).</li>
+        <li>Приложите документы из чек-листа.</li>
+        <li>После подачи нажмите «Претензия подана», затем отметьте результат.</li>
+      </ol>
+      <small>На MVP подачу за вас может выполнить наш оператор — он использует этот же черновик.</small></div>`;
+  } else {
+    draftBlock = '<p style="color:#999;margin-top:8px">Черновик ещё не сгенерирован.</p>';
+  }
+
+  // кнопки жизненного цикла по текущему статусу
+  const acts = [];
+  if(canDraft && !card.draft) acts.push('<button class="btn" data-act="draft">Сгенерировать претензию</button>');
+  if(card.draft){
+    acts.push('<button class="btn sec" data-act="copy">Скопировать текст</button>');
+    acts.push('<button class="btn sec" data-act="download">Скачать .txt</button>');
+  }
+  if(['disputable','drafting'].includes(f.status)) acts.push('<button class="btn" data-act="submitted">Претензия подана</button>');
+  if(f.status!=='won') acts.push('<button class="btn sec" data-act="won">Возврат получен</button>');
+  if(['submitted','disputable','drafting'].includes(f.status)) acts.push('<button class="btn sec" data-act="lost">Отказ WB</button>');
+  acts.push('<button class="btn sec" data-act="close">Закрыть</button>');
+
   $('#modal').innerHTML = `
     <span class="x" onclick="closeModal()">×</span>
     <h2>${f.category} · ${money(f.amount)}</h2>
     <div class="meta">Артикул: ${raw.nm_id ?? '—'} · Штрихкод: ${raw.shk_id ?? '—'} · Товар: ${escapeHtml(raw.subject_name||'—')}</div>
-    <div class="meta">Начислен: ${fmtDate(f.charged_at)} · Дедлайн: ${fmtDate(f.dispute_deadline)} · Статус: <b>${f.status}</b> ${statePill(f)}</div>
+    <div class="meta">Начислен: ${fmtDate(f.charged_at)} · Дедлайн: ${fmtDate(f.dispute_deadline)} · Статус: ${statePill(f)}</div>
     <div class="meta">Основание (WB): «${escapeHtml(f.reason_raw)}»</div>
-    ${draftBlock}
+    ${draftBlock}${nextBlock}
     <h3>История статусов</h3><ul class="events">${evs}</ul>
-    <div class="modal-actions">
-      ${canDraft?'<button class="btn" id="genBtn">Сгенерировать претензию</button>':''}
-      <button class="btn sec" id="wonBtn">Отметить возврат (won)</button>
-      <button class="btn sec" onclick="closeModal()">Закрыть</button>
-    </div>`;
+    <div class="modal-actions">${acts.join('')}</div>`;
   $('#overlay').classList.add('show');
-  if(canDraft) $('#genBtn').onclick=async()=>{ try{ await api('/api/fines/'+id+'/draft',{method:'POST'}); await openFine(id); await loadData(); }catch(e){ alert(e.message);} };
-  $('#wonBtn').onclick=async()=>{
-    const a=prompt('Сумма фактического возврата, ₽:',String(f.amount)); if(a===null)return;
-    try{ await api('/api/fines/'+id+'/events',{method:'POST',body:JSON.stringify({status:'won',recovered_amount:a,note:'Отмечено в кабинете'})}); await openFine(id); await loadData(); }catch(e){ alert(e.message);} };
+  $('#modal').querySelectorAll('[data-act]').forEach(b=> b.onclick=()=>fineAction(id, b.dataset.act, f));
+}
+
+async function fineAction(id, act, f){
+  try{
+    if(act==='close'){ closeModal(); return; }
+    if(act==='copy'){ await navigator.clipboard.writeText(_lastCard.draft.body_md); alert('Текст претензии скопирован в буфер обмена'); return; }
+    if(act==='download'){
+      const blob=new Blob([_lastCard.draft.body_md],{type:'text/plain;charset=utf-8'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+      a.download='Претензия_'+(_lastCard.raw_json?.rrd_id||id)+'.txt'; a.click(); URL.revokeObjectURL(a.href); return;
+    }
+    if(act==='draft'){ await api('/api/fines/'+id+'/draft',{method:'POST'}); }
+    if(act==='submitted'){ await api('/api/fines/'+id+'/events',{method:'POST',body:JSON.stringify({status:'submitted',note:'Претензия подана'})}); }
+    if(act==='won'){
+      const a=prompt('Сумма фактического возврата, ₽:',String(f.amount)); if(a===null)return;
+      await api('/api/fines/'+id+'/events',{method:'POST',body:JSON.stringify({status:'won',recovered_amount:a,note:'Возврат получен'})});
+    }
+    if(act==='lost'){
+      if(!confirm('Отметить как отказ WB?'))return;
+      await api('/api/fines/'+id+'/events',{method:'POST',body:JSON.stringify({status:'lost',note:'Отказ WB'})});
+    }
+    await openFine(id); await loadData();
+  }catch(e){ alert(e.message); }
 }
 function closeModal(){ $('#overlay').classList.remove('show'); }
 $('#overlay').onclick=e=>{ if(e.target.id==='overlay') closeModal(); };
